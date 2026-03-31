@@ -3,10 +3,12 @@ import { isLoggedIn, logout, getUser } from './lib/api';
 import Login from './components/Login';
 import Calendar from './components/Calendar';
 import PostList from './components/PostList';
+import Dashboard from './components/Dashboard';
 
 const TABS = [
   { id: 'calendario', label: 'Calendario' },
   { id: 'lista', label: 'Lista' },
+  { id: 'dashboard', label: 'Dashboard' },
 ];
 
 function App() {
@@ -51,6 +53,7 @@ function App() {
       </div>
       {activeTab === 'calendario' && <Calendar />}
       {activeTab === 'lista' && <PostList />}
+      {activeTab === 'dashboard' && <Dashboard />}
     </div>
   );
 }
