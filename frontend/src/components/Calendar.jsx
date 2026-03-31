@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { usePosts } from '../hooks/usePosts';
+import { api } from '../lib/api';
 import PostCard from './PostCard';
 import PostForm from './PostForm';
 
@@ -26,6 +27,8 @@ export default function Calendar() {
   const [defaultDate, setDefaultDate] = useState(null);
 
   const { posts, loading, refresh } = usePosts({ mes: month + 1, ano: year });
+  const dragPostRef = useRef(null);
+  const [dropTarget, setDropTarget] = useState(null);
 
   const postsByDay = useMemo(() => {
     const map = {};
@@ -52,6 +55,39 @@ export default function Calendar() {
       setYear(year + 1);
     } else {
       setMonth(month + 1);
+    }
+  }
+
+  function handleDragStart(post) {
+    dragPostRef.current = post;
+  }
+
+  function handleDragOver(e, day) {
+    e.preventDefault();
+    setDropTarget(day);
+  }
+
+  function handleDragLeave() {
+    setDropTarget(null);
+  }
+
+  async function handleDrop(e, day) {
+    e.preventDefault();
+    setDropTarget(null);
+    const post = dragPostRef.current;
+    dragPostRef.current = null;
+    if (!post) return;
+
+    const oldDate = new Date(post.data_planejada);
+    const oldDay = oldDate.getDate();
+    if (oldDay === day && oldDate.getMonth() === month && oldDate.getFullYear() === year) return;
+
+    const newDate = new Date(year, month, day, oldDate.getHours(), oldDate.getMinutes());
+    try {
+      await api.updatePost(post.id, { data_planejada: newDate.toISOString() });
+      refresh();
+    } catch {
+      // silently fail — user can retry
     }
   }
 
@@ -92,11 +128,17 @@ export default function Calendar() {
     const dayPosts = postsByDay[day] || [];
     const isToday = isCurrentMonth && day === todayDate;
 
+    const isDrop = dropTarget === day;
     cells.push(
       <div
         key={day}
-        className="bg-[#111] border border-[#1a1a1a] min-h-[100px] p-1 hover:bg-[#151515] transition-colors cursor-pointer"
+        className={`bg-[#111] border min-h-[100px] p-1 hover:bg-[#151515] transition-colors cursor-pointer ${
+          isDrop ? 'border-teal-500/50 bg-teal-500/5' : 'border-[#1a1a1a]'
+        }`}
         onClick={() => handleDayClick(day)}
+        onDragOver={(e) => handleDragOver(e, day)}
+        onDragLeave={handleDragLeave}
+        onDrop={(e) => handleDrop(e, day)}
       >
         <div className="flex items-center justify-between mb-1">
           <span
@@ -112,7 +154,13 @@ export default function Calendar() {
         </div>
         <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
           {dayPosts.map((post) => (
-            <PostCard key={post.id} post={post} onClick={handlePostClick} />
+            <PostCard
+              key={post.id}
+              post={post}
+              onClick={handlePostClick}
+              draggable
+              onDragStart={() => handleDragStart(post)}
+            />
           ))}
         </div>
       </div>
