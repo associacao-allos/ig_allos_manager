@@ -192,15 +192,15 @@ export default function PostList() {
                     </td>
                     <td className="py-2.5 text-sm">
                       {hasWarning && post.status !== 'cancelado' && post.status !== 'publicado' && (
-                        <div className="flex gap-1">
+                        <div className="flex items-center gap-1.5">
                           {missingCaption && (
-                            <span className="text-amber-500 text-xs" title="Sem caption">
-                              T
+                            <span className="text-amber-500/80 text-[10px] bg-amber-500/10 px-1.5 py-0.5 rounded" title="Sem caption">
+                              sem caption
                             </span>
                           )}
                           {missingCanva && (
-                            <span className="text-amber-500 text-xs" title="Sem link Canva">
-                              C
+                            <span className="text-amber-500/80 text-[10px] bg-amber-500/10 px-1.5 py-0.5 rounded" title="Sem link Canva">
+                              sem canva
                             </span>
                           )}
                         </div>
